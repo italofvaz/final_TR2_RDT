@@ -1,6 +1,23 @@
 import argparse
 import RDT
-import time
+
+
+def send_message(rdt, message):
+    # Divide a mensagem em pacotes e envia cada um
+    for i in range(0, len(message), rdt.window_size):
+        packet_data = message[i:i+rdt.window_size]
+        rdt.rdt_4_0_send(packet_data)
+
+    # Recebe a resposta completa
+    response = ""
+    while True:
+        part = rdt.rdt_4_0_receive()
+        if part:
+            response += part
+        else:
+            break
+    return response
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Quotation client talking to a Pig Latin server.')
@@ -9,39 +26,22 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     msg_L = [
-    	'The art of debugging is figuring out what you really told your program to do rather than what you thought you told it to do. -- Andrew Singer', 
-    	'The good news about computers is that they do what you tell them to do. The bad news is that they do what you tell them to do. -- Ted Nelson', 
-    	'It is hardware that makes a machine fast. It is software that makes a fast machine slow. -- Craig Bruce',
+        'The art of debugging is figuring out what you really told your program to do rather than what you thought you told it to do. -- Andrew Singer', 
+        'The good news about computers is that they do what you tell them to do. The bad news is that they do what you tell them to do. -- Ted Nelson', 
+        'It is hardware that makes a machine fast. It is software that makes a fast machine slow. -- Craig Bruce',
         'The art of debugging is figuring out what you really told your program to do rather than what you thought you told it to do. -- Andrew Singer',
-        'The computer was born to solve problems that did not exist before. - Bill Gates']
+        'The computer was born to solve problems that did not exist before. - Bill Gates'
+    ]
 
-    timeout = 1000  # send the next message if not response
-    time_of_last_data = time.time()
     rdt = RDT.RDT('client', args.server, args.port)
     try:
         for msg_S in msg_L:
-            print('Client asking to change case: ' + msg_S)
-            rdt.rdt_3_0_send(msg_S)
-
-            # try to receive message before timeout
-            msg_S = None
-            while msg_S is None:
-                msg_S = rdt.rdt_3_0_receive()
-                if msg_S is None:
-                    if time_of_last_data + timeout < time.time():
-                        break
-                    else:
-                        continue
-            time_of_last_data = time.time()
-
-            # print the result
-            if msg_S:
-                print('Client: Received the converted frase to: ' + msg_S + '\n')
+            print('Client sending: ' + msg_S)
+            response = send_message(rdt, msg_S)
+            print('Client received: ' + response + '\n')
     except (KeyboardInterrupt, SystemExit):
-        rdt.disconnect()
         print("Ending connection...")
     except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
-        rdt.disconnect()
         print("Ending connection...")
     finally:
         rdt.disconnect()
