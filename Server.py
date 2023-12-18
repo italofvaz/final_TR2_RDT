@@ -19,27 +19,27 @@ if __name__ == '__main__':
     rdt = RDT.RDT('server', None, args.port)
     try:
         while True:
-            # try to receiver message before timeout
-            msg_S = rdt.rdt_3_0_receive()
-            if msg_S is None:
-                if time_of_last_data + timeout < time.time():
+            full_msg = ''
+            while True:
+                msg_part = rdt.rdt_4_0_receive()
+                if msg_part:
+                    full_msg += msg_part
+                    time_of_last_data = time.time()
+                if time.time() - time_of_last_data > timeout:
                     break
-                else:
-                    continue
-            time_of_last_data = time.time()
 
-            # convert and reply
-            rep_msg_S = upperCase(msg_S)
-            print('Server: converted %s \nto\n %s' % (msg_S, rep_msg_S))
-            rdt.rdt_3_0_send(rep_msg_S)
+            if full_msg:
+                rep_msg_S = upperCase(full_msg)
+                print(f'Server: converted {full_msg} to {rep_msg_S}')
+                rdt.rdt_4_0_send(rep_msg_S)
+            else:
+                # Exit the loop if no data is received for the duration of the timeout
+                break
+
     except (KeyboardInterrupt, SystemExit):
-        rdt.disconnect()
         print("Ending connection...")
     except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
-        rdt.disconnect()
         print("Ending connection...")
     finally:
         rdt.disconnect()
         print("Connection ended.")
-
-
