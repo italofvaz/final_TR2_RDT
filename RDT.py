@@ -14,10 +14,8 @@ def debug_log(message):
 
 
 class Packet:
-    # the number of bytes used to store packet length
     seq_num_S_length = 10
     length_S_length = 10
-    # length of md5 checksum in hex
     checksum_length = 32
 
     def __init__(self, seq_num, msg_S):
@@ -35,14 +33,10 @@ class Packet:
         return cls(seq_num, msg_S)
 
     def get_byte_S(self):
-        # convert sequence number to a byte field of seq_num_S_length bytes
         seq_num_S = str(self.seq_num).zfill(self.seq_num_S_length)
-        # convert length to a byte field of length_S_length bytes
         length_S = str(self.length_S_length + len(seq_num_S) + self.checksum_length + len(self.msg_S)).zfill(
             self.length_S_length)
-        # compute the checksum
         checksum = hashlib.md5((length_S + seq_num_S + self.msg_S).encode('utf-8')).hexdigest()
-        # compile into a string
         return length_S + seq_num_S + checksum + self.msg_S
 
     @staticmethod
@@ -54,20 +48,15 @@ class Packet:
                      Packet.seq_num_S_length + Packet.seq_num_S_length: Packet.seq_num_S_length + Packet.length_S_length + Packet.checksum_length]
         msg_S = byte_S[Packet.seq_num_S_length + Packet.seq_num_S_length + Packet.checksum_length:]
 
-        # compute the checksum locally
         checksum = hashlib.md5((length_S + seq_num_S + msg_S).encode('utf-8')).hexdigest()
-        # check if the same
         return checksum_S != checksum
 
     def is_ack_pack(self):
-        # Identify if the packet is an ACK/NAK
         return self.msg_S in ['ACK', 'NAK']
 
 
 class RDT:
-    # latest sequence number used in a packet
     seq_num = 0
-    # buffer of bytes read from network
     byte_buffer = ''
     timeout = 3
 
@@ -82,7 +71,7 @@ class RDT:
         window = []
         base = self.seq_num
         next_seq_num = self.seq_num
-        window_size = self.window_size  # Usar o atributo da classe
+        window_size = self.window_size
 
         # Enviar todos os pacotes da mensagem
         while base < len(msg_S):
