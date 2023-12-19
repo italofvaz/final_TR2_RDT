@@ -94,6 +94,7 @@ class RDT:
             # Waiting for ack/nak
             while response == '' and timer + self.timeout > time.time():
                 response = self.network.udt_receive()
+                print('Waiting for ack/nak', response)
 
             if response == '':
                 self.disconnect()

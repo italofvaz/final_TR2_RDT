@@ -17,9 +17,8 @@ if __name__ == '__main__':
     time_of_last_data = time.time()
 
     rdt = RDT.RDT('server', None, args.port)
-    msg_S=''
     try:
-        while msg_S != None:
+        while True:
             # try to receiver message before timeout
             msg_S = rdt.rdt_3_0_receive()
             if msg_S is None:
@@ -31,7 +30,7 @@ if __name__ == '__main__':
 
             # convert and reply
             rep_msg_S = upperCase(msg_S)
-            print('Server: converted %s \nto %s\n' % (msg_S, rep_msg_S))
+            print('Serer: converted %s \nto %s\n' % (msg_S, rep_msg_S))
             rdt.rdt_3_0_send(rep_msg_S)
     except (KeyboardInterrupt, SystemExit):
         print("Ending connection...")

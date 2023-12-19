@@ -47,7 +47,7 @@ if __name__ == '__main__':
             # print the result
             if msg_S:
                 print('[CLIENT]: Received the converted frase to: ' + msg_S + '\n')
-        print('[CLIENT] Tempo para Rodar o Programa Inteiro', time_of_start_client, 'ms')
+        print('[CLIENT] Tempo para Rodar o Programa Inteiro', time_of_last_data - time_of_start_client, 'ms')
     except (KeyboardInterrupt, SystemExit):
         print("[CLIENT] Ending connection...")
     except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):

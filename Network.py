@@ -86,6 +86,7 @@ class NetworkLayer:
         while (recv_bytes != b''):
             try:
                 recv_bytes = self.conn.recv(2048)
+                
                 with self.lock:
                     self.buffer_S += recv_bytes.decode('utf-8')
             except BlockingIOError as err:
