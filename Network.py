@@ -39,7 +39,7 @@ class NetworkLayer:
             self.conn.settimeout(self.socket_timeout)
 
         # start the thread to receive data on the connection
-        self.collect_thread = threading.Thread(name='Collector', target=self.collect)
+        self.collect_thread = threading.Thread(name='Collector', target=self.collect, daemon=True)
         self.stop = False
         self.collect_thread.start()
 
@@ -79,20 +79,23 @@ class NetworkLayer:
                 raise RuntimeError("socket connection broken")
             totalsent = totalsent + sent
 
-    ## Receive data from the network and save in internal buffer
+# Receive data from the network and save in internal buffer
     def collect(self):
-        #         print (threading.currentThread().getName() + ': Starting')
-        while (True):
+        print(threading.currentThread().getName() + ': Starting')
+        recv_bytes = None
+        while (recv_bytes != b''):
             try:
                 recv_bytes = self.conn.recv(2048)
                 with self.lock:
                     self.buffer_S += recv_bytes.decode('utf-8')
             except BlockingIOError as err:
+                print(err)
                 pass
             except socket.timeout as err:
                 pass
             if self.stop:
-                #                 print (threading.currentThread().getName() + ': Ending')
+                print('Self Stop')
+                print(threading.currentThread().getName() + ': Ending')
                 return
 
     ## Deliver collected data to client

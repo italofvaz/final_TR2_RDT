@@ -13,29 +13,26 @@ if __name__ == '__main__':
     parser.add_argument('port', help='Port.', type=int)
     args = parser.parse_args()
 
-    timeout = 5000  # close connection if no new data within 5 seconds
+    timeout = 1000  # close connection if no new data within 5 seconds
     time_of_last_data = time.time()
 
     rdt = RDT.RDT('server', None, args.port)
+    msg_S=''
     try:
-        while True:
-            full_msg = ''
-            while True:
-                msg_part = rdt.rdt_4_0_receive()
-                if msg_part:
-                    full_msg += msg_part
-                    time_of_last_data = time.time()
-                if time.time() - time_of_last_data > timeout:
+        while msg_S != None:
+            # try to receiver message before timeout
+            msg_S = rdt.rdt_3_0_receive()
+            if msg_S is None:
+                if time_of_last_data + timeout < time.time():
                     break
+                else:
+                    continue
+            time_of_last_data = time.time()
 
-            if full_msg:
-                rep_msg_S = upperCase(full_msg)
-                print(f'Server: converted {full_msg} to {rep_msg_S}')
-                rdt.rdt_4_0_send(rep_msg_S)
-            else:
-                # Exit the loop if no data is received for the duration of the timeout
-                break
-
+            # convert and reply
+            rep_msg_S = upperCase(msg_S)
+            print('Server: converted %s \nto %s\n' % (msg_S, rep_msg_S))
+            rdt.rdt_3_0_send(rep_msg_S)
     except (KeyboardInterrupt, SystemExit):
         print("Ending connection...")
     except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
@@ -43,3 +40,5 @@ if __name__ == '__main__':
     finally:
         rdt.disconnect()
         print("Connection ended.")
+
+
